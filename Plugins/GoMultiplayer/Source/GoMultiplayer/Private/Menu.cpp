@@ -6,6 +6,7 @@
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "GoMultiplayerSubsystem.h"
 
 
@@ -67,7 +68,7 @@ bool UMenu::Initialize()
 
 void UMenu::OnClicked_HostButton()
 {
-	
+	HostButton->SetIsEnabled(false);
 	if (GoMultiplayerSubsystem)
 	{
 		GoMultiplayerSubsystem->CreateSession(NumPublicConnections, MatchType);
@@ -76,11 +77,13 @@ void UMenu::OnClicked_HostButton()
 
 void UMenu::OnClicked_JoinButton()
 {
+	JoinButton->SetIsEnabled(false);
 	if (GoMultiplayerSubsystem)
 	{
 		GoMultiplayerSubsystem->FindSessions(10000);
 	}
 }
+
 
 void UMenu::MenuTearDown()
 {
@@ -132,6 +135,7 @@ void UMenu::OnCreateSessionComplete(bool bWasSuccessful)
 				-1, 10.0f, FColor::Red, FString::Printf(TEXT("Session Not Created"))
 			);
 		}
+		HostButton->SetIsEnabled(true);
 	}
 }
 
@@ -150,6 +154,11 @@ void UMenu::OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& ses
 			GoMultiplayerSubsystem->JoinSession(result);
 			return;
 		}
+	}
+
+	if (!bWasSuccessful || sessionResults.Num() == 0)
+	{
+		JoinButton->SetIsEnabled(true);
 	}
 }
 
@@ -181,6 +190,11 @@ void UMenu::OnJoinSessionComplete(EOnJoinSessionCompleteResult::Type Result)
 				-1, 10.0f, FColor::Yellow, FString::Printf(TEXT("Joined"))
 			);
 		}
+	}
+
+	if (Result != EOnJoinSessionCompleteResult::Success)
+	{
+		JoinButton->SetIsEnabled(true);
 	}
 }
 

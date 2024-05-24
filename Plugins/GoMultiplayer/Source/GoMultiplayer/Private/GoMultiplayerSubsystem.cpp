@@ -34,7 +34,10 @@ void UGoMultiplayerSubsystem::CreateSession(int32 NumOfPublicConnections, FStrin
 
 	if (ExistingSession != nullptr) //Check if there is already existing session, if yes, delete it
 	{
-		SessionInterface->DestroySession(NAME_GameSession);
+		bCreateSessionOnDestroy = true;
+		lastNumPublicConnections = NumOfPublicConnections;
+		lastMatchType = MatchType;
+		DestroySession();
 	}
 
 	CreateSessionCompleteDelegate_Handle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate); //Added delegate to delegates list
@@ -111,6 +114,19 @@ void UGoMultiplayerSubsystem::JoinSession(const FOnlineSessionSearchResult& sess
 
 void UGoMultiplayerSubsystem::DestroySession()
 {
+	if (!SessionInterface.IsValid())
+	{
+		GMSOnDestroySessionComplete.Broadcast(false);
+		return;
+	}
+
+	DestroySessionCompleteDelegate_Handle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegate);
+
+	if (!SessionInterface->DestroySession(NAME_GameSession))
+	{
+		SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegate_Handle);
+		GMSOnDestroySessionComplete.Broadcast(false);
+	}
 }
 
 
@@ -200,6 +216,18 @@ void UGoMultiplayerSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSe
 
 void UGoMultiplayerSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
 {
+	if (SessionInterface)
+	{
+		SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegate_Handle);
+	}
+
+	if (bWasSuccessful && bCreateSessionOnDestroy)
+	{
+		bCreateSessionOnDestroy = false;
+		CreateSession(lastNumPublicConnections, lastMatchType);
+	}
+
+	GMSOnDestroySessionComplete.Broadcast(bWasSuccessful);
 }
 
 
