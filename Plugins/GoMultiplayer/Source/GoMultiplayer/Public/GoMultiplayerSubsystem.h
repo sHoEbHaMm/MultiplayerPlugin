@@ -37,6 +37,8 @@ protected:
 
 private:
 	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<FOnlineSessionSettings> lastSessionSettings;
+
 
 	/* To add to Online Session Interface's delegate list 
 	* We will also bind our GoMultiplayerSubsystem internal callbacks to these. */

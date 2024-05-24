@@ -15,7 +15,7 @@ class GOMULTIPLAYER_API UMenu : public UUserWidget
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetupMenu();
+	void SetupMenu(int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")));
 
 protected:
 	virtual bool Initialize() override;
@@ -32,6 +32,11 @@ private:
 	UFUNCTION()
 	void OnClicked_JoinButton();
 
+	void MenuTearDown();
+
 	/* Subsystem designed to handle multiplayer functionality */
 	class UGoMultiplayerSubsystem* GoMultiplayerSubsystem;
+
+	int32 NumPublicConnections{ 4 };
+	FString MatchType{ TEXT("FreeForAll") };
 };
