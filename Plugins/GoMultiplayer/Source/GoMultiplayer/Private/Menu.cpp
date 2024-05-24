@@ -3,6 +3,9 @@
 
 #include "Menu.h"
 #include "Components/Button.h"
+#include "OnlineSubsystem.h"
+#include "OnlineSessionSettings.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "GoMultiplayerSubsystem.h"
 
 
@@ -72,10 +75,9 @@ void UMenu::OnClicked_HostButton()
 
 void UMenu::OnClicked_JoinButton()
 {
-
 	if (GoMultiplayerSubsystem)
 	{
-		
+		GoMultiplayerSubsystem->FindSessions(10000);
 	}
 }
 
@@ -133,11 +135,52 @@ void UMenu::OnCreateSessionComplete(bool bWasSuccessful)
 }
 
 void UMenu::OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& sessionResults, bool bWasSuccessful)
-{
+{	
+	if (GoMultiplayerSubsystem == nullptr)
+		return;
+
+	for (auto result : sessionResults)
+	{
+		FString foundMatchType;
+		result.Session.SessionSettings.Get(FName("MatchType"), foundMatchType);
+
+		if (foundMatchType == MatchType)
+		{
+			GoMultiplayerSubsystem->JoinSession(result);
+			return;
+		}
+	}
 }
 
 void UMenu::OnJoinSessionComplete(EOnJoinSessionCompleteResult::Type Result)
 {
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+
+	if (OnlineSubsystem)
+	{
+		IOnlineSessionPtr SessionInterface = OnlineSubsystem->GetSessionInterface();
+
+		if (!SessionInterface.IsValid())
+			return;
+
+		FString Address;
+
+		SessionInterface->GetResolvedConnectString(NAME_GameSession, Address);
+
+		APlayerController* playerController = GetGameInstance()->GetFirstLocalPlayerController();
+
+		if (playerController)
+		{
+			playerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
+		}
+
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1, 10.0f, FColor::Yellow, FString::Printf(TEXT("Joined"))
+			);
+		}
+	}
 }
 
 void UMenu::OnDestroySessionComplete(bool bWasSuccessful)
