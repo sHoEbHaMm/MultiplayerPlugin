@@ -50,6 +50,7 @@ void UGoMultiplayerSubsystem::CreateSession(int32 NumOfPublicConnections, FStrin
 	if (!SessionInterface->CreateSession(*localPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *lastSessionSettings))
 	{
 		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate_Handle);
+		GMSOnCreateSessionComplete.Broadcast(false);
 	}
 }
 
@@ -71,7 +72,11 @@ void UGoMultiplayerSubsystem::StartSession()
 
 void UGoMultiplayerSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
-
+	if (SessionInterface)
+	{
+		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate_Handle);
+	}
+	GMSOnCreateSessionComplete.Broadcast(bWasSuccessful); //This will call OnCreateSession from Menu class
 }
 
 void UGoMultiplayerSubsystem::OnFindSessionsComplete(bool bWasSuccessful)

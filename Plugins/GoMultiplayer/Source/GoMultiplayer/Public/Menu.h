@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "OnlineSessionSettings.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 
 /**
@@ -20,6 +22,18 @@ public:
 protected:
 	virtual bool Initialize() override;
 	virtual void NativeDestruct() override;
+
+	/* Callbacks for custom delegates created in plugin */
+	UFUNCTION()
+	void OnCreateSessionComplete(bool bWasSuccessful);
+
+	void OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& sessionResults, bool bWasSuccessful);
+	void OnJoinSessionComplete(EOnJoinSessionCompleteResult::Type Result);
+
+	UFUNCTION()
+	void OnDestroySessionComplete(bool bWasSuccessful);
+	UFUNCTION()
+	void OnStartSessionComplete(bool bWasSuccessful);
 
 private:
 	UPROPERTY(meta = (BindWidget))

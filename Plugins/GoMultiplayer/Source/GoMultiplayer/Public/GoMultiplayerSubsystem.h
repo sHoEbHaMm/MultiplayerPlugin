@@ -9,8 +9,15 @@
 #include "GoMultiplayerSubsystem.generated.h"
 
 /**
- * 
+ * Declaring custom delegates
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGMSOnCreateSessionComplete, bool, bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FGMSOnFindSessionsComplete, const TArray<FOnlineSessionSearchResult>& sessionResults, bool bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_OneParam(FGMSOnJoinSessionComplete, EOnJoinSessionCompleteResult::Type Result);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGMSOnDestroySessionComplete, bool, bWasSuccessful);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGMSOnStartSessionComplete, bool, bWasSuccessful);
+
+
 UCLASS()
 class GOMULTIPLAYER_API UGoMultiplayerSubsystem : public UGameInstanceSubsystem
 {
@@ -25,6 +32,12 @@ public:
 	void DestroySession();
 	void StartSession();
 
+	/* Custom delegates for communication with Menu Class */
+	FGMSOnCreateSessionComplete GMSOnCreateSessionComplete;
+	FGMSOnFindSessionsComplete GMSOnFindSessionsComplete;
+	FGMSOnJoinSessionComplete GMSOnJoinSessionComplete;
+	FGMSOnDestroySessionComplete GMSOnDestroySessionComplete;
+	FGMSOnStartSessionComplete GMSOnStartSessionComplete;
 
 protected:
 	/* Internal callbacks for the delegates added to the Online Session Interface's delegate list

@@ -5,6 +5,7 @@
 #include "Components/Button.h"
 #include "GoMultiplayerSubsystem.h"
 
+
 void UMenu::SetupMenu(int32 NumberOfPublicConnections, FString TypeOfMatch)
 {
 	NumPublicConnections = NumberOfPublicConnections;
@@ -31,6 +32,15 @@ void UMenu::SetupMenu(int32 NumberOfPublicConnections, FString TypeOfMatch)
 	}
 
 	GoMultiplayerSubsystem = GetGameInstance()->GetSubsystem<UGoMultiplayerSubsystem>();
+
+	if (GoMultiplayerSubsystem)
+	{
+		GoMultiplayerSubsystem->GMSOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSessionComplete);
+		GoMultiplayerSubsystem->GMSOnFindSessionsComplete.AddUObject(this, &ThisClass::OnFindSessionsComplete);
+		GoMultiplayerSubsystem->GMSOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSessionComplete);
+		GoMultiplayerSubsystem->GMSOnDestroySessionComplete.AddDynamic(this, &ThisClass::OnDestroySessionComplete);
+		GoMultiplayerSubsystem->GMSOnStartSessionComplete.AddDynamic(this, &ThisClass::OnStartSessionComplete);
+	}
 }
 
 bool UMenu::Initialize()
@@ -53,34 +63,15 @@ bool UMenu::Initialize()
 
 void UMenu::OnClicked_HostButton()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1, 10.0f, FColor::Green, FString::Printf(TEXT("HOSTING"))
-		);
-	}
 	
 	if (GoMultiplayerSubsystem)
 	{
 		GoMultiplayerSubsystem->CreateSession(NumPublicConnections, MatchType);
-
-		UWorld* World = GetWorld();
-
-		if (World)
-		{
-			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
-		}
 	}
 }
 
 void UMenu::OnClicked_JoinButton()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1, 10.0f, FColor::Green, FString::Printf(TEXT("JOINING"))
-		);
-	}
 
 	if (GoMultiplayerSubsystem)
 	{
@@ -110,4 +101,49 @@ void UMenu::NativeDestruct()
 {
 	Super::NativeDestruct();
 	MenuTearDown();
+}
+
+void UMenu::OnCreateSessionComplete(bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1, 10.0f, FColor::Green, FString::Printf(TEXT("Session Created Successfully"))
+			);
+		}
+
+		UWorld* World = GetWorld();
+
+		if (World)
+		{
+			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+		}
+	}
+	else
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1, 10.0f, FColor::Red, FString::Printf(TEXT("Session Not Created"))
+			);
+		}
+	}
+}
+
+void UMenu::OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& sessionResults, bool bWasSuccessful)
+{
+}
+
+void UMenu::OnJoinSessionComplete(EOnJoinSessionCompleteResult::Type Result)
+{
+}
+
+void UMenu::OnDestroySessionComplete(bool bWasSuccessful)
+{
+}
+
+void UMenu::OnStartSessionComplete(bool bWasSuccessful)
+{
 }
