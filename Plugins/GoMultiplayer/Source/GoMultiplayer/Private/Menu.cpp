@@ -9,8 +9,9 @@
 #include "GoMultiplayerSubsystem.h"
 
 
-void UMenu::SetupMenu(int32 NumberOfPublicConnections, FString TypeOfMatch)
+void UMenu::SetupMenu(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
 {
+	PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
 	NumPublicConnections = NumberOfPublicConnections;
 	MatchType = TypeOfMatch;
 
@@ -120,7 +121,7 @@ void UMenu::OnCreateSessionComplete(bool bWasSuccessful)
 
 		if (World)
 		{
-			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+			World->ServerTravel(PathToLobby);
 		}
 	}
 	else
